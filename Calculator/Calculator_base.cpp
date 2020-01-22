@@ -183,13 +183,13 @@ int CCalculator::calculate_Simple(double input1, double input2, int operation, d
 
 int CCalculator::parseQuestion()
 {
-	// * 문장을 앞부터 읽어가며 숫자 부분, 연산자 부분을 구분해 저장
+	// * 문장을 앞부터 한글자씩 읽어가며 숫자 부분, 연산자 부분을 구분해 저장
 	//   - 숫자 및 .이 나올 경우 : 숫자 부분에 값을 기억
 	//   - 연산자가 나올 경우 : 기억한 숫자값을 벡터로 저장
 	//   - (가 나올 경우 : 클래스를 재귀호출해 답을 읽어와 숫자로 저장
 	//   - )가 나오거나 문장이 끝난 경우 : 지금까지 저장한 값을 연산
 
-	string numberInput; // 입력받은 숫자의 임시 저장소
+	wstring numberInput; // 입력받은 숫자의 임시 저장소
 	int length = 0; // 문장의 길이 - 처리한 내용의 길이를 저장하기 위해 사용
 
 	for (auto it = _question.begin(); it != _question.end(); ++it)
@@ -202,7 +202,7 @@ int CCalculator::parseQuestion()
 		case '/':
 		{
 			// 연산자 전까지 확인한 값을 집어넣음
-			double newnumber = atof(numberInput.c_str());
+			double newnumber = std::stof(numberInput.c_str());
 			_vecNumbers.push_back(newnumber);
 			numberInput.clear();
 
@@ -247,7 +247,7 @@ int CCalculator::parseQuestion()
 	}
 
 	// 마지막 숫자를 기록
-	double newnumber = atof(numberInput.c_str());
+	double newnumber = std::stof(numberInput.c_str());
 	_vecNumbers.push_back(newnumber);
 	numberInput.clear();
 	_length = length;
