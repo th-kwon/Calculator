@@ -218,12 +218,42 @@ int CCalculator::parseQuestion()
 		break;
 		case '(':
 		{
-			// TODO : 괄호가 시작되었을 경우에 대한 처리
+			// 괄호가 시작되었을 경우에 대한 처리
+			// 괄호 뒷부분을 잘라 새 문항을 생성
+			wstring subQuestion = _question.substr(length + 1, _question.length() - length - 1);
+
+			// 새 계산기 클래스를 만들고, 새 문항 부분을 연산시킴
+			CCalculator subcalc;
+			int addedLength = 0;
+			subcalc.SetQuestion(subQuestion);
+			if (subcalc.Calculate() != 0)
+			{
+				setError(subcalc.GetError());
+				return -1;
+			}
+			// 연산 결과를 입력하고, 체크하는 위치를 괄호 끝으로 이동시킴
+			numberInput = to_wstring(subcalc.GetAnswer());
+			addedLength = subcalc.GetLength();
+			length += addedLength + 1;
+
+			// 체크위치를 옮길때 길이를 초과해서 넘어가지 않도록 설정
+			if(length >= _question.length()) 
+				it = _question.end() - 1; 
+			else 
+				it += addedLength + 1;
 		}
 		break;
 		case ')':
 		{
-			// TODO : 괄호가 닫혔을 때에 대한 처리
+			// 괄호가 닫혔을 때에 대한 처리
+			// 괄호가 닫힌 부분까지만 연산하고 종료시킴
+			double newnumber = std::stof(numberInput.c_str());
+			_vecNumbers.push_back(newnumber);
+			numberInput.clear();
+
+			// 연산에 사용한 문장의 길이를 기록
+			_length = length;
+			return 0;
 		}
 		break;
 		default:
