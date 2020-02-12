@@ -38,7 +38,7 @@ void SetQuestion(wstring question) { Initialize();  _question = question; };
 double GetAnswer() { return _answer; };
 ```
 
-* 출력하기위한 결과겂을 받아옵니다.
+* 출력하기위한 결과값을 받아옵니다.
 
     - 입력값 : 없음
 
@@ -211,4 +211,8 @@ int Calculate();
      
         - 입력받은 숫자,연산자를 구분해서 저장합니다.
         
-        
+	- 연산자가 나올 때마다 _vecNumbers에 숫자를 _vecOperators에 연산자를 push back 합니다.
+	
+	- 문장의 길이를 length++ 를 이용해 기록합니다.
+	
+	-
