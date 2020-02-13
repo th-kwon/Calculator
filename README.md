@@ -205,14 +205,416 @@ int Calculate();
    
       - 입력값 : 없음
       
-      - 출력값 : 숫자, 연산자
+      - 출력값 : 숫자, 연산자 (Int)
       
      + 작동 로직
      
-        - 입력받은 숫자,연산자를 구분해서 저장합니다.
+      - 입력받은 숫자,연산자를 구분해서 저장합니다.
         
-	- 연산자가 나올 때마다 _vecNumbers에 숫자를 _vecOperators에 연산자를 push back 합니다.
+      - 연산자가 나올 때마다 _vecNumbers에 숫자를 _vecOperators에 연산자를 push back 합니다.
 	
-	- 문장의 길이를 length++ 를 이용해 기록합니다.
+      - 문장의 길이를 length++ 를 이용해 기록합니다.
 	
 	-
+## Dlg
+
+```
+CString question; 
+```
+
+ - 연산 문장 전체를 저장하는 문자열
+
+```
+CString answer;
+```
+
+ - 연산 결과값 저장용 문자열
+
+
+```
+wstring wsQestion(question)
+```
+
+ - question을 wstring 형식으로 따로 저장
+	
+```
+CCalculator calc
+```
+
+ - 헤드에있는 CCalculator 함수를 calc라는 이름으로 불러옴
+	
+```
+calc.SetQuestion(wsQuestion) 
+```
+
+ - 헤드에있는 SetQuestion에 wsQuestion을 대입함
+
+```
+ if (clac.Calculate() !=0)
+ ```
+ 
+  - 리턴값이 0이 아닐때 즉 에러일 경우
+  
+ ```
+ switch(calc.GetError()) 
+ ```
+ 
+  - 에러의 종류를 찾기위한 스위치함수
+  
+ ```
+ case CCalculator::CALC_ERROR_BAD_INPUT:
+ answer = L"입력오류"
+ ```
+ 
+  - 입력 오류일경우 결과값으로 입력오류! 를 결과값에 저장
+  
+  ```
+  case CCalculator::CALC_ERROR_DIV_BY_ZERO
+  answer= L"0으로 나눌 수 없습니다"
+  ```
+  
+   - 0으로 숫자를 나눌경우 0으로 나눌 수 없습니다 를 결과값에 저장
+   
+ ```
+   default:
+   	answer =L"계산오류";
+	break;
+```
+
+ - 그 외에 다른 오류일경우 계산오류 를 결과값에 저장
+ 
+ ```
+ else answer.Format(L"%g", calc.GetAnswer());
+ ```
+ 
+  - 에러가 없을 경우 결과값을 answer에 저장
+  
+  ```
+  SetDlgTemText(IDC_EDIT, answer)
+  ```
+  
+   - 최종 결과값을 컨트롤박스 IDC_EDIT_ANSWER에 저장 출력
+   
+## base.cpp
+
+```
+CCalculator::CCalculaor()
+{
+	Initialize();
+}
+void CCalculator::Initialize()
+{
+	_question.clear();
+	_vecNumbers.clear();
+	_vecOperators.clear();		
+	_answer = 0;
+	_errorCode = 0;
+	_length = 0;
+}
+```
+
+ * CCalculator 는 Initialize를 사용하는 함수
+
+ * Initialize는 전 기록이 남지 않도록 question, vecNumber, vevOperators, answer, errorCode, length를 모두 초기화하는 함수
+ 
+### int CCalculator::Calculate()
+---------------------------------
+ 
+```
+if (_question.empty()) return -1;
+
+if (parseQuestion() != 0) return -1;
+```
+ 
+ * question 또는 parseQuestion이 잘못된값을 리턴할경우 에러 처리
+ 
+```
+map<int, wstring> currentNumbers;
+map<int, int> currentOperators; 
+```
+
+ * map 배열을 이용하여 numbers는 연산할 숫자3개를 저장, Operators는 연산할 연산자 2개를 저장
+ 
+```
+auto itNumber = _vecNumbers.begin();
+auto itOperator = _vecOperators.begin();
+```
+
+ * inNumber는 vecNumber의 첫값이므로 첫번째 숫자
+ 
+ * itOperator는 vecOperators의 첫값이므로 첫번째 연산자
+ 
+```
+if (currentNumbers[0].empty()) currentNumbers[0] = to_wstring(*(itNumber++));
+```
+
+ * currentNumbers의 첫번째값이 비어있을경우 itNumber의 값으로 설정함
+ 
+ * currentNumbers에 첫번째 값을 입력하는 조건문
+ 
+```
+while (itNumber != _vecNumbers.end())
+```
+
+ * itNumber 가 vecNumbers의 끝자리와 다른동안 반복한다
+ 
+```
+for (int i = 0; i <= 1; i++)
+{
+	
+	if (currentOperators[i] == CALC_OP_UNKNOWN) currentOperators[i] = *(itOperator++);
+	if (currentNumbers[i + 1].empty()) currentNumbers[i + 1] = to_wstring(*(itNumber++));
+```	
+
+ * currentOperators와 currentNumbers에 각각 연산자와 숫자를 입력한다
+
+```
+if (itOperator == _vecOperators.end())
+{
+	if (itNumber == _vecNumbers.end()) break;
+```
+
+ * 숫자와 연산자를 모두사용하면 연산이 종료됨
+ 
+ ```
+	else 
+	{
+		setError(CALC_ERROR_BAD_INPUT);
+		return -1;
+	}
+}
+```
+ 
+ * 연산자 끝났는데 숫자가 남은경우 ErrorCode 발생
+
+```
+	else if (itNumber == _vecNumbers.end())
+	{
+		setError(CALC_ERROR_BAD_INPUT);
+		return -1;
+	}
+
+}
+```
+ * 숫자가 끝났는데 연산자가 남은경우 ErrorCode 발생
+
+```
+if (calculate_Sub(currentNumbers, currentOperators) != 0)
+		return -1;
+};
+```
+
+ * 항목을 전부 체크할 때까지 연산한다.
+ 
+ ```
+ if(!currentNumbers[1].empty()) // 아직 연산할게 남아있다면 마지막으로 한번 더 연산을 돌림
+		if (calculate_Sub(currentNumbers, currentOperators) != 0)
+			return -1;
+```
+
+ * 연산할게 남아있다면 마지막으로 한번 더 연산함
+ 
+ 
+ ```
+ _answer = std::stof(currentNumbers[0].c_str());
+ 
+ return 0;
+ ```
+ 
+  * 결과값을 float 형으로 저장한다
+  
+  * 전부 끝나면 0을 리턴한다.
+  
+## int CCalculator::calculate_Sub(map<int, wstring>& numbers, map<int, int>& operators)
+--------------------------------
+숫자3개 연산자 2개 이상일때 사용하는 수식
+
+```
+switch(operators[0])
+	{
+	case CALC_OP_PLUS:
+	case CALC_OP_MINUS:
+	{
+	switch (operators[1])
+		{
+		case CALC_OP_MULTIPLY:
+		case CALC_OP_DIVIDE:
+		{
+		double result = 0;
+			if (calculate_Simple(std::stof(numbers[1].c_str()), std::stof(numbers[2].c_str()), operators[1], result) != 0)
+				return -1;
+```
+
+ * 첫 연산자가 +,-이고 뒤에 연산자가 *,/ 일 경우
+ 
+ * number[0]은 놔두고 number[1]과 number[2]먼저 연산한다.
+ 
+ * 이상한 값이 나올경우 -1을 리턴한다.
+ 
+ ```
+ 	numbers[1] = to_wstring(result);
+			operators[1] = CALC_OP_UNKNOWN;
+			numbers[2].clear();
+		}
+```
+
+ * 위에 number[1]과 number[2]의 연산결과값을 number[1]에 저장한다.
+ 
+ * 더 사용하지 않을 operator[1]과 number[2]를 각각 unknown과 null로 만든다.
+ 
+```
+case CALC_OP_PLUS:
+case CALC_OP_MINUS:
+	default: 
+```
+
+* 1번째가 +,-이고 2번째가 *,/를 제외한 나머지일 경우
+
+```
+double result = 0;
+	if (calculate_Simple(std::stof(numbers[0].c_str()), std::stof(numbers[1].c_str()), operators[0], result) != 0)
+		return -1;
+numbers[0] = to_wstring(result);
+	operators[0] = operators[1]; 
+	operators[1] = CALC_OP_UNKNOWN;
+	numbers[1] = numbers[2];
+	numbers[2].clear();
+	}
+```
+
+* number[0]과 number[1]을 operator[0]대로 연산한다
+
+* number[2]와 operators[1]은 다음 연산을 위해 사용하지 않는다.
+
+ ## int CCalculator::calculate_Simple(double input1, double input2, int operation, double & result)
+-----------------------------------------------
+
+1대1 상황에서의 연산
+
+```
+switch (operation)
+	{
+	case CALC_OP_PLUS:
+		result = input1 + input2;
+		break;
+	case CALC_OP_MINUS:
+		result = input1 - input2;
+		break;
+	case CALC_OP_MULTIPLY:
+		result = input1 * input2;
+		break;
+	case CALC_OP_DIVIDE:
+		if (input2 == 0)
+		{
+			// 0으로 나눴을 때의 오류
+			setError(CALC_ERROR_DIV_BY_ZERO);
+			return -1;
+		}
+		result = input1 / input2;
+		break;
+```
+
+ * opration, 연산자의 모양대로 값1과 값2의 +,-,*,/ 연산을 싱행한다
+ 
+ * 연산 값은 result에 삽입힌다.
+ 
+ * 0으로 나눌경우 ErrorCode 발생한다
+ 
+ ```
+ default:
+	// 기타 연산에러
+	setError(CALC_ERROR_UNKNOWN_OPERATION);
+	return -1;
+	break;
+	}
+return 0;
+}
+```
+
+ * 그 외 Operator에 이상한값이 들어갔을경우 ERROR CODE발생
+ 
+ * 이경우엔 -1을 리턴한다
+ 
+ ```
+ int CCalculator::parseQuestion()
+ ```
+ 
+ * 문장을 앞에서부터 읽어가며 연산자가 나올때마다 숫자,연산자를 구분해 저장
+ 
+ ```
+ string numberInput;
+ Int length = 0;
+ ```
+ 
+  * numberInput은 입력받은 수의 임시 저장소
+  length 는 문장의 길이
+  
+ ```
+ switch (*it)
+		{
+		case '+':
+		case '-':
+		case '*':
+		case '/':
+
+		{
+			// 연산자 전까지 확인한 값을 집어넣음
+			double newnumber = atof(numberInput.c_str());
+			_vecNumbers.push_back(newnumber);
+			numberInput.clear();
+```
+
+ * 연산자가 +,-,*,/중 하나일때 작동함
+ 
+ * 연산자 전까지 확인한 값을 저장
+ 
+ ```
+ switch (*it)
+	{
+	case '+': _vecOperators.push_back(CALC_OP_PLUS); break;
+	case '-': _vecOperators.push_back(CALC_OP_MINUS); break;
+	case '*': _vecOperators.push_back(CALC_OP_MULTIPLY); break;
+	case '/': _vecOperators.push_back(CALC_OP_DIVIDE); break;
+```
+
+ * 위에서입력한 연산자를 vecOperator에 저장
+
+```
+default:
+	{
+		char letter = *it;
+		if (isdigit(letter) || letter == '.')
+		{
+			numberInput.append(1, letter);
+		}
+		else if (letter != ' ')
+		{
+			setError(CALC_ERROR_BAD_INPUT);
+			return -1;
+		}
+	}
+```
+
+ * 기타숫자 혹은 .이라면 글자 추가
+ 
+ * 공백은 아무일도 일어나지 않으며 그외에 문자가 추가되면 ErrorCode 발생
+ 
+ ```
+ length++; 
+newnumber = atof(numberInput.c_str());
+_vecNumbers.push_back(newnumber);
+numberInput.clear();
+_length = length;
+return 0;
+```
+ * 반복작업이 끝나고 마지막 연산을 하는 코드
+
+ * 반복문이 한번 돌아갈때마다 length가 1씩 증가하여 문장의 길이를 기록함
+ 
+ * newNumber는 numberInput(임시저장소)의 float형 변환
+ 
+ * float형으로 변경된 newNumber를 vecNumber 에 삽입하고 임시저장소인 number_Input을 초기화
+ 
+ * 길이체크용 변수인 _length에 length값을 대입
+ 
+ * 모든 연산이 완료되면 성공의 의미인 0을 리턴
