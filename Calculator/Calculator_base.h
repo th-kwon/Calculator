@@ -44,7 +44,5 @@ private:
 	int calculate_Simple(double input1, double input2, int operation, double& result); // 단순 두 항을 연산하는 함수. 성공시 0을, 실패시 -1을 리턴
 	void setError(int errorCode) { _errorCode = errorCode; };
 	int parseQuestion(); // 문장을 값과 연산자로 구분
-	int calcute2();
-	int calculate2();
+	double newnumber; // vector에 넣기전 임시보관소
 };
-
