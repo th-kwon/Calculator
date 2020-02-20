@@ -189,7 +189,7 @@ int CCalculator::parseQuestion()
 	//   - (가 나올 경우 : 클래스를 재귀호출해 답을 읽어와 숫자로 저장
 	//   - )가 나오거나 문장이 끝난 경우 : 지금까지 저장한 값을 연산
 
-	wstring numberInput; // 입력받은 숫자의 임시 저장소
+	string numberInput; // 입력받은 숫자의 임시 저장소
 	int length = 0; // 문장의 길이 - 처리한 내용의 길이를 저장하기 위해 사용
 
 
@@ -204,11 +204,15 @@ int CCalculator::parseQuestion()
 
 		{
 			// 연산자 전까지 확인한 값을 집어넣음
-			double newnumber = std::stof(numberInput.c_str());
-			if (newnumber != NULL) {
-				_vecNumbers.push_back(newnumber);
+			if (numberInput == (string)"")
+			{
+				setError(CALC_ERROR_BAD_INPUT);
+				return -1;
 			}
+			double newnumber = std::stof(numberInput.c_str());
+			_vecNumbers.push_back(newnumber);
 			numberInput.clear();
+
 
 			// 현재 연산자 정보를 저장
 			switch (*it)
@@ -223,14 +227,14 @@ int CCalculator::parseQuestion()
 		break;
 		case '(':
 		{
-			wstring Qeustion2 = _question.substr(length + 1, _question.length() - length - 1);		//question2 에 괄호 내용 삽입
+			wstring Question2 = _question.substr(length + 1, _question.length() - length - 1);		//Question2 에 괄호 내용 삽입
 
 			CCalculator Calculator2;					// 클래스 호출
 			int Length2 = 0;							// 괄호 안 내용 길이
-			Calculator2.SetQuestion(Qeustion2);			// 새클래스 SetQuestion에 question를 대입
+			Calculator2.SetQuestion(Question2);			// 새클래스 SetQuestion에 question를 대입
 			Calculator2.Calculate();					// 괄호 안 내용 연산
 
-			numberInput = to_wstring(Calculator2.GetAnswer());		// 연산 결과를 numberInput에 삽입
+			numberInput = to_string(Calculator2.GetAnswer());		// 연산 결과를 numberInput에 삽입
 
 			Length2 = Calculator2.GetLength();			// Length2에 괄호 안 내용의 길이를 삽입
 			length += Length2 + 1;						// 괄호 밖 length에 괄호 안의 길이를 삽입
@@ -245,13 +249,13 @@ int CCalculator::parseQuestion()
 		case ')': //)가 나오거나 문장이 끝난 경우 : 지금까지 저장한 값을 연산
 		{
 			double newnumber = std::stof(numberInput);
-			if (newnumber != NULL) {
+		
 				_vecNumbers.push_back(newnumber);
 				numberInput.clear();
 				_length = length;
 
 				return 0;
-			}
+			
 			break;
 		}
 		default:
@@ -273,16 +277,16 @@ int CCalculator::parseQuestion()
 		}
 
 		length++; // 처리한 문장의 길이 기록
-
+		
 	}
 
 	// 마지막 숫자를 기록
 
-	newnumber = std::stof(numberInput.c_str());
-	if (newnumber != NULL) {
+	double newnumber = std::stof(numberInput.c_str());
+	
 		_vecNumbers.push_back(newnumber);
 		numberInput.clear();
 		_length = length;
-	}
+	
 	return 0;
 }

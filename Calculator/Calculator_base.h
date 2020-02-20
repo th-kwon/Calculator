@@ -33,9 +33,6 @@ protected:
 	vector<double> _vecNumbers; // 각 항목 숫자를 넣는 벡터
 	vector<int> _vecOperators; // 연산자를 저장하는 벡터
 
-	vector<double> _vecNumbers2; // 각 항목 숫자를 넣는 벡터
-	vector<int> _vecOperators2; // 연산자를 저장하는 벡터
-
 	int _errorCode; // 연산 결과 성공여부 - 0:성공, 1:실패, 기타 숫자 : 에러 종류.(div/0 등)
 	int _length; // 연산한 문장 길이 체크용
 
@@ -44,5 +41,4 @@ private:
 	int calculate_Simple(double input1, double input2, int operation, double& result); // 단순 두 항을 연산하는 함수. 성공시 0을, 실패시 -1을 리턴
 	void setError(int errorCode) { _errorCode = errorCode; };
 	int parseQuestion(); // 문장을 값과 연산자로 구분
-	double newnumber; // vector에 넣기전 임시보관소
 };
