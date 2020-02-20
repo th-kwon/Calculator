@@ -209,8 +209,8 @@ int CCalculator::parseQuestion()
 				setError(CALC_ERROR_BAD_INPUT);
 				return -1;
 			}
-			double newnumber = std::stof(numberInput.c_str());
-			_vecNumbers.push_back(newnumber);
+			double newNumber = std::stof(numberInput.c_str());
+			_vecNumbers.push_back(newNumber);
 			numberInput.clear();
 
 
@@ -249,9 +249,9 @@ int CCalculator::parseQuestion()
 		}
 		case ')': //)가 나오거나 문장이 끝난 경우 : 지금까지 저장한 값을 연산
 		{
-			double newnumber = std::stof(numberInput);
+			double newNumber = std::stof(numberInput);
 
-			_vecNumbers.push_back(newnumber);
+			_vecNumbers.push_back(newNumber);
 			numberInput.clear();
 			_length = length;
 
@@ -283,9 +283,9 @@ int CCalculator::parseQuestion()
 
 	// 마지막 숫자를 기록
 
-	double newnumber = std::stof(numberInput.c_str());
+	double newNumber = std::stof(numberInput.c_str());
 
-	_vecNumbers.push_back(newnumber);
+	_vecNumbers.push_back(newNumber);
 	numberInput.clear();
 	_length = length;
 
