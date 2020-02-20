@@ -189,7 +189,7 @@ int CCalculator::parseQuestion()
 	//   - (가 나올 경우 : 클래스를 재귀호출해 답을 읽어와 숫자로 저장
 	//   - )가 나오거나 문장이 끝난 경우 : 지금까지 저장한 값을 연산
 
-	string numberInput; // 입력받은 숫자의 임시 저장소
+	wstring numberInput; // 입력받은 숫자의 임시 저장소
 	int length = 0; // 문장의 길이 - 처리한 내용의 길이를 저장하기 위해 사용
 
 
@@ -204,7 +204,7 @@ int CCalculator::parseQuestion()
 
 		{
 			// 연산자 전까지 확인한 값을 집어넣음
-			if (numberInput == (string)"")
+			if (numberInput.empty())
 			{
 				setError(CALC_ERROR_BAD_INPUT);
 				return -1;
@@ -234,7 +234,7 @@ int CCalculator::parseQuestion()
 			Calculator2.SetQuestion(Question2);			// 새클래스 SetQuestion에 question를 대입
 			Calculator2.Calculate();					// 괄호 안 내용 연산
 
-			numberInput = to_string(Calculator2.GetAnswer());		// 연산 결과를 numberInput에 삽입
+			numberInput = to_wstring(Calculator2.GetAnswer());		// 연산 결과를 numberInput에 삽입
 
 			Length2 = Calculator2.GetLength();			// Length2에 괄호 안 내용의 길이를 삽입
 			length += Length2 + 1;						// 괄호 밖 length에 괄호 안의 길이를 삽입
@@ -245,17 +245,18 @@ int CCalculator::parseQuestion()
 			else {										// 남은 연산이 많은경우
 				it += Length2 + 1;
 			}
-			break; }
+			break;
+		}
 		case ')': //)가 나오거나 문장이 끝난 경우 : 지금까지 저장한 값을 연산
 		{
 			double newnumber = std::stof(numberInput);
-		
-				_vecNumbers.push_back(newnumber);
-				numberInput.clear();
-				_length = length;
 
-				return 0;
-			
+			_vecNumbers.push_back(newnumber);
+			numberInput.clear();
+			_length = length;
+
+			return 0;
+
 			break;
 		}
 		default:
@@ -277,16 +278,16 @@ int CCalculator::parseQuestion()
 		}
 
 		length++; // 처리한 문장의 길이 기록
-		
+
 	}
 
 	// 마지막 숫자를 기록
 
 	double newnumber = std::stof(numberInput.c_str());
-	
-		_vecNumbers.push_back(newnumber);
-		numberInput.clear();
-		_length = length;
-	
+
+	_vecNumbers.push_back(newnumber);
+	numberInput.clear();
+	_length = length;
+
 	return 0;
 }
