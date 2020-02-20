@@ -42,4 +42,3 @@ private:
 	void setError(int errorCode) { _errorCode = errorCode; };
 	int parseQuestion(); // 문장을 값과 연산자로 구분
 };
-
