@@ -1,12 +1,10 @@
 ﻿#include "stdafx.h"
 #include "Calculator_base.h"
 
-
 CCalculator::CCalculator()
 {
 	Initialize();
 }
-
 
 CCalculator::~CCalculator()
 {
@@ -16,7 +14,7 @@ void CCalculator::Initialize()
 {
 	_question.clear();
 	_vecNumbers.clear();
-	_vecOperators.clear();		
+	_vecOperators.clear();
 	_answer = 0;
 	_errorCode = 0;
 	_length = 0;
@@ -68,7 +66,7 @@ int CCalculator::Calculate()
 			return -1;
 	};
 
-	if(!currentNumbers[1].empty()) // 아직 연산할게 남아있다면 마지막으로 한번 더 연산을 돌림
+	if (!currentNumbers[1].empty()) // 아직 연산할게 남아있다면 마지막으로 한번 더 연산을 돌림
 		if (calculate_Sub(currentNumbers, currentOperators) != 0)
 			return -1;
 
@@ -85,7 +83,7 @@ int CCalculator::calculate_Sub(map<int, wstring>& numbers, map<int, int>& operat
 	//   - 두번째 연산자가 +, -일 경우 : 첫번째와 두번째 항목을 계산
 	//   - 두번째 연산자가 *, /일 경우 : 두번째와 세번째 항목을 계산, 이후 두번째 연산자를 다시 체크
 
-	switch(operators[0])
+	switch (operators[0])
 	{
 	case CALC_OP_PLUS:
 	case CALC_OP_MINUS:
@@ -125,7 +123,7 @@ int CCalculator::calculate_Sub(map<int, wstring>& numbers, map<int, int>& operat
 		break;
 		}
 	}
-		break;
+	break;
 	case CALC_OP_MULTIPLY:
 	case CALC_OP_DIVIDE:
 	{
@@ -137,12 +135,12 @@ int CCalculator::calculate_Sub(map<int, wstring>& numbers, map<int, int>& operat
 		// 이후 결과값 처리
 		numbers[0] = to_wstring(result);
 		// 뒤의 연산을 앞으로 당김
-		operators[0] = operators[1]; 
+		operators[0] = operators[1];
 		operators[1] = CALC_OP_UNKNOWN;
 		numbers[1] = numbers[2];
 		numbers[2].clear();
 	}
-		break;
+	break;
 	}
 
 	return 0;
@@ -178,12 +176,14 @@ int CCalculator::calculate_Simple(double input1, double input2, int operation, d
 		break;
 	}
 
+
 	return 0;
 }
 
+
 int CCalculator::parseQuestion()
 {
-	// * 문장을 앞부터 한글자씩 읽어가며 숫자 부분, 연산자 부분을 구분해 저장
+	// * 문장을 앞부터 읽어가며 숫자 부분, 연산자 부분을 구분해 저장
 	//   - 숫자 및 .이 나올 경우 : 숫자 부분에 값을 기억
 	//   - 연산자가 나올 경우 : 기억한 숫자값을 벡터로 저장
 	//   - (가 나올 경우 : 클래스를 재귀호출해 답을 읽어와 숫자로 저장
@@ -191,6 +191,7 @@ int CCalculator::parseQuestion()
 
 	wstring numberInput; // 입력받은 숫자의 임시 저장소
 	int length = 0; // 문장의 길이 - 처리한 내용의 길이를 저장하기 위해 사용
+
 
 	for (auto it = _question.begin(); it != _question.end(); ++it)
 	{
@@ -200,11 +201,18 @@ int CCalculator::parseQuestion()
 		case '-':
 		case '*':
 		case '/':
+
 		{
 			// 연산자 전까지 확인한 값을 집어넣음
-			double newnumber = std::stof(numberInput.c_str());
-			_vecNumbers.push_back(newnumber);
+			if (numberInput.empty())
+			{
+				setError(CALC_ERROR_BAD_INPUT);
+				return -1;
+			}
+			double newNumber = std::stof(numberInput.c_str());
+			_vecNumbers.push_back(newNumber);
 			numberInput.clear();
+
 
 			// 현재 연산자 정보를 저장
 			switch (*it)
@@ -213,49 +221,44 @@ int CCalculator::parseQuestion()
 			case '-': _vecOperators.push_back(CALC_OP_MINUS); break;
 			case '*': _vecOperators.push_back(CALC_OP_MULTIPLY); break;
 			case '/': _vecOperators.push_back(CALC_OP_DIVIDE); break;
+
 			}
 		}
 		break;
 		case '(':
 		{
-			// 괄호가 시작되었을 경우에 대한 처리
-			// 괄호 뒷부분을 잘라 새 문항을 생성
-			wstring subQuestion = _question.substr(length + 1, _question.length() - length - 1);
+			wstring Question2 = _question.substr(length + 1, _question.length() - length - 1);		//Question2 에 괄호 내용 삽입
 
-			// 새 계산기 클래스를 만들고, 새 문항 부분을 연산시킴
-			CCalculator subcalc;
-			int addedLength = 0;
-			subcalc.SetQuestion(subQuestion);
-			if (subcalc.Calculate() != 0)
-			{
-				setError(subcalc.GetError());
-				return -1;
+			CCalculator Calculator2;					// 클래스 호출
+			int Length2 = 0;							// 괄호 안 내용 길이
+			Calculator2.SetQuestion(Question2);			// 새클래스 SetQuestion에 question를 대입
+			Calculator2.Calculate();					// 괄호 안 내용 연산
+
+			numberInput = to_wstring(Calculator2.GetAnswer());		// 연산 결과를 numberInput에 삽입
+
+			Length2 = Calculator2.GetLength();			// Length2에 괄호 안 내용의 길이를 삽입
+			length += Length2 + 1;						// 괄호 밖 length에 괄호 안의 길이를 삽입
+
+			if (length >= _question.length()) {		// 남은 연산이 없을경우
+				it = _question.end() - 1;
 			}
-			// 연산 결과를 입력하고, 체크하는 위치를 괄호 끝으로 이동시킴
-			numberInput = to_wstring(subcalc.GetAnswer());
-			addedLength = subcalc.GetLength();
-			length += addedLength + 1;
-
-			// 체크위치를 옮길때 길이를 초과해서 넘어가지 않도록 설정
-			if(length >= _question.length()) 
-				it = _question.end() - 1; 
-			else 
-				it += addedLength + 1;
+			else {										// 남은 연산이 많은경우
+				it += Length2 + 1;
+			}
+			break;
 		}
-		break;
-		case ')':
+		case ')': //)가 나오거나 문장이 끝난 경우 : 지금까지 저장한 값을 연산
 		{
-			// 괄호가 닫혔을 때에 대한 처리
-			// 괄호가 닫힌 부분까지만 연산하고 종료시킴
-			double newnumber = std::stof(numberInput.c_str());
-			_vecNumbers.push_back(newnumber);
-			numberInput.clear();
+			double newNumber = std::stof(numberInput);
 
-			// 연산에 사용한 문장의 길이를 기록
+			_vecNumbers.push_back(newNumber);
+			numberInput.clear();
 			_length = length;
+
 			return 0;
+
+			break;
 		}
-		break;
 		default:
 		{
 			// 기타 숫자 및 . 입력시에 대한 처리
@@ -268,17 +271,21 @@ int CCalculator::parseQuestion()
 			{
 				setError(CALC_ERROR_BAD_INPUT);
 				return -1;
+
 			}
 		}
 		break;
 		}
 
 		length++; // 처리한 문장의 길이 기록
+
 	}
 
 	// 마지막 숫자를 기록
-	double newnumber = std::stof(numberInput.c_str());
-	_vecNumbers.push_back(newnumber);
+
+	double newNumber = std::stof(numberInput.c_str());
+
+	_vecNumbers.push_back(newNumber);
 	numberInput.clear();
 	_length = length;
 
