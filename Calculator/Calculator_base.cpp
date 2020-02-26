@@ -18,7 +18,7 @@ void CCalculator::Initialize()
 	_answer = 0;
 	_errorCode = 0;
 	_length = 0;
-	in = 0;
+	_bracketCount = 0;
 }
 
 int CCalculator::Calculate()
@@ -28,7 +28,7 @@ int CCalculator::Calculate()
 
 	if (parseQuestion() != 0) return -1;
 
-	if (in = 0) {
+	if (_bracketCount == 0) {
 		int open = 0, close = 0; //  괄호 여는갯수와 닫는갯수
 		for (int i = 0; i < _question.length(); i++) {
 			if (_question.substr(i, 1) == L"(") {
@@ -40,6 +40,7 @@ int CCalculator::Calculate()
 		}
 		if (close != open)
 		{
+			setError(CALC_ERROR_BAD_INPUT);
 			return -1;
 		}
 	}
@@ -250,7 +251,7 @@ int CCalculator::parseQuestion()
 
 			int Length2 = 0;							// 괄호 안 내용 길이
 			Calculator2.SetQuestion(Question2);			// 새클래스 SetQuestion에 question를 대입
-			Calculator2.in = in + 1;
+			Calculator2._bracketCount = _bracketCount + 1;
 			Calculator2.Calculate();	// 괄호 안 내용 연산
 			numberInput = to_wstring(Calculator2.GetAnswer());		// 연산 결과를 numberInput에 삽입
 
@@ -269,10 +270,11 @@ int CCalculator::parseQuestion()
 		case ')': //)가 나오거나 문장이 끝난 경우 : 지금까지 저장한 값을 연산
 		{
 
-			in = in - 1;
+			_bracketCount = _bracketCount - 1;
 
-			if (in < 0)		//괄호를 닫을때 괄호 안인지 아닌지 비교
+			if (_bracketCount < 0)		//괄호를 닫을때 괄호 안인지 아닌지 비교
 			{
+				setError(CALC_ERROR_BAD_INPUT);
 				return -1;
 			}
 			double newNumber = std::stof(numberInput);
