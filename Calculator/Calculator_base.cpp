@@ -18,6 +18,7 @@ void CCalculator::Initialize()
 	_answer = 0;
 	_errorCode = 0;
 	_length = 0;
+	_bracketCount = 0;
 }
 
 int CCalculator::Calculate()
@@ -27,6 +28,22 @@ int CCalculator::Calculate()
 
 	if (parseQuestion() != 0) return -1;
 
+	if (_bracketCount == 0) {
+		int open = 0, close = 0; //  괄호 여는갯수와 닫는갯수
+		for (int i = 0; i < _question.length(); i++) {
+			if (_question.substr(i, 1) == L"(") {
+				open = open + 1;
+			}
+			if (_question.substr(i, 1) == L")") {
+				close = close + 1;
+			}
+		}
+		if (close != open)
+		{
+			setError(CALC_ERROR_BAD_INPUT);
+			return -1;
+		}
+	}
 	map<int, wstring> currentNumbers; // 연산할 숫자 3개를 저장
 	map<int, int> currentOperators; // 연산할 연산자 2개를 저장
 
@@ -192,6 +209,7 @@ int CCalculator::parseQuestion()
 	wstring numberInput; // 입력받은 숫자의 임시 저장소
 	int length = 0; // 문장의 길이 - 처리한 내용의 길이를 저장하기 위해 사용
 
+	; //괄호 내부인지 외부인지 체크하는 변수
 
 	for (auto it = _question.begin(); it != _question.end(); ++it)
 	{
@@ -227,13 +245,14 @@ int CCalculator::parseQuestion()
 		break;
 		case '(':
 		{
-			wstring Question2 = _question.substr(length + 1, _question.length() - length - 1);		//Question2 에 괄호 내용 삽입
 
-			CCalculator Calculator2;					// 클래스 호출
+			wstring Question2 = _question.substr(length + 1, _question.length() - length - 1);		//Question2 에 괄호 내용 삽입
+			CCalculator Calculator2;	// 클래스 호출
+
 			int Length2 = 0;							// 괄호 안 내용 길이
 			Calculator2.SetQuestion(Question2);			// 새클래스 SetQuestion에 question를 대입
-			Calculator2.Calculate();					// 괄호 안 내용 연산
-
+			Calculator2._bracketCount = _bracketCount + 1;
+			Calculator2.Calculate();	// 괄호 안 내용 연산
 			numberInput = to_wstring(Calculator2.GetAnswer());		// 연산 결과를 numberInput에 삽입
 
 			Length2 = Calculator2.GetLength();			// Length2에 괄호 안 내용의 길이를 삽입
@@ -245,10 +264,19 @@ int CCalculator::parseQuestion()
 			else {										// 남은 연산이 많은경우
 				it += Length2 + 1;
 			}
+
 			break;
 		}
 		case ')': //)가 나오거나 문장이 끝난 경우 : 지금까지 저장한 값을 연산
 		{
+
+			_bracketCount = _bracketCount - 1;
+
+			if (_bracketCount < 0)		//괄호를 닫을때 괄호 안인지 아닌지 비교
+			{
+				setError(CALC_ERROR_BAD_INPUT);
+				return -1;
+			}
 			double newNumber = std::stof(numberInput);
 
 			_vecNumbers.push_back(newNumber);
